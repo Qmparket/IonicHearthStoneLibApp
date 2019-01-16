@@ -11,6 +11,7 @@ import { AppComponent } from './app.component';
 import { CardPageModule } from './card/card.module';
 
 
+
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],

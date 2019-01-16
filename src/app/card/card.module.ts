@@ -8,12 +8,16 @@ import { HttpClientModule } from '@angular/common/http';
 import { CardListComponent } from './components/card-list.component';
 import { CardListingPage } from './card-listing/card-listing.page';
 import { CardDetailPage } from './card-detail/card-detail.page';
+import { LoaderService } from '../Shared/Service/loader.service';
+import { ToastService } from '../Shared/Service/toast.service';
+import { AlertService } from '../Shared/Service/alert.service';
+import { SearchComponent } from '../Shared/component/search/search.component';
 
 @NgModule({
-    declarations: [CardDeckPage, CardListComponent, CardListingPage, CardDetailPage],
+    declarations: [CardDeckPage, CardListComponent, CardListingPage, CardDetailPage, SearchComponent],
     imports: [ IonicModule, CommonModule, HttpClientModule ],
     exports: [],
-    providers: [CardService],
+    providers: [CardService, LoaderService, ToastService, AlertService],
 })
 export class CardPageModule {
 

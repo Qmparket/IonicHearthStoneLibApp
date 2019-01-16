@@ -3,7 +3,9 @@ import { ActivatedRoute } from '@angular/router';
 import { CardService } from '../shared/card.service';
 
 import { Card } from '../shared/card.model';
-import { LoadingController } from '@ionic/angular';
+import { LoaderService } from '../../Shared/Service/loader.service';
+import { ToastService } from '../../Shared/Service/toast.service';
+import { AlertService } from '../../Shared/Service/alert.service';
 
 @Component({
   selector: 'app-card-detail',
@@ -13,28 +15,16 @@ import { LoadingController } from '@ionic/angular';
 export class CardDetailPage {
   cardId: string;
   card: Card;
-  loader: any;
 
   constructor(private route: ActivatedRoute,
               private cardService: CardService,
-              private loadingCtrl: LoadingController) { }
+              private loaderService: LoaderService,
+              private toastService: ToastService,
+              private alertService: AlertService) { }
 
-  private async presentLoading() {
-    // const loader = this.loadingCtrl.create({
-    //   content: 'Loading',
-    //   translucent: true
-    // }).then((newLoader) => newLoader.present());
 
-    const loader = await this.loadingCtrl.create({
-      content: 'Loading',
-      translucent: true
-    });
-    loader.present();
-    return loader;
-  }
-
-  async ionViewWillEnter() {
-    this.loader = await this.presentLoading();
+  ionViewWillEnter() {
+    this.loaderService.presentLoading();
     this.cardId = this.route.snapshot.paramMap.get('cardId');
     this.cardService.getCardById(this.cardId).subscribe(
       (card: Card[]) => {
@@ -47,7 +37,11 @@ export class CardDetailPage {
         if (this.card.img == null) {
           this.card.img = '/assets/image/DefaultCard.png';
         }
-        this.loader.dismiss();
+        this.loaderService.dismissLoading();
+    } , (err) => {
+      console.log('could not load card details: ' + err);
+      this.loaderService.dismissLoading();
+      this.toastService.presentErrorToast('Could not load card details, try to reload the page!');
     });
   }
   updateImage() {

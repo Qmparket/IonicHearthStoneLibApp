@@ -4,6 +4,9 @@ import { CardService } from '../shared/card.service';
 
 import { Card } from '../shared/card.model';
 import { LoadingController } from '@ionic/angular';
+import { LoaderService } from '../../Shared/Service/loader.service';
+import { ToastService } from '../../Shared/Service/toast.service';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-card-listing',
@@ -15,32 +18,18 @@ export class CardListingPage {
   cardDeckGroup: string;
   cardDeck: string;
 
-  cards: Card[];
-  loader: any;
+  cards: Card[] = [];
+  copyOfCards: Card[] = [];
+
+  isLoading = false;
 
   constructor(private route: ActivatedRoute,
               private cardService: CardService,
-              private loadingCtrl: LoadingController) { }
+              private loaderService: LoaderService,
+              private toastService: ToastService) { }
 
-  private async presentLoading() {
-    // const loader = this.loadingCtrl.create({
-    //   content: 'Loading',
-    //   translucent: true
-    // }).then((newLoader) => newLoader.present());
-
-    const loader = await this.loadingCtrl.create({
-      content: 'Loading',
-      translucent: true
-    });
-    loader.present();
-    return loader;
-  }
-
-  async ionViewWillEnter() {
-    this.cardDeckGroup = this.route.snapshot.paramMap.get('cardDeckGroup');
-    this.cardDeck = this.route.snapshot.paramMap.get('cardDeck');
-
-    this.loader = await this.presentLoading();
+  private async getCards() {
+    this.loaderService.presentLoading();
 
     await this.cardService.getCardsByDeck(this.cardDeckGroup, this.cardDeck).subscribe(
       (cards: Card[]) => {
@@ -59,11 +48,35 @@ export class CardListingPage {
           card.text = this.cardService.replaceCardTextLine(card.text);
           return card;
         });
-        this.loader.dismiss();
+        this.copyOfCards = Array.from(this.cards);
+        this.loaderService.dismissLoading();
     }, err => {
       console.log('error getting cards: ' + err);
-      this.loader.dismiss();
+      this.toastService.presentErrorToast('Cards could not be loaded, try to refresh the page');
+      this.loaderService.dismissLoading();
     });
   }
 
+  doRefresh(event) {
+    this.getCards();
+    event.target.complete();
+  }
+
+  async ionViewWillEnter() {
+    this.cardDeckGroup = this.route.snapshot.paramMap.get('cardDeckGroup');
+    this.cardDeck = this.route.snapshot.paramMap.get('cardDeck');
+
+    if (this.cards && this.cards.length === 0) {
+      this.getCards();
+    }
+  }
+
+  hydrateCards(cards: Card[]) {
+    this.cards = cards;
+    this.isLoading = false;
+  }
+
+  handleSearch() {
+    this.isLoading = true;
+  }
 }
